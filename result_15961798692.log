@@ -1,0 +1,152 @@
+Sign String: appId=lvguang123&password=zhineng@123789!#&timestamp=1767147038870&username=lvguangzhineng
+【登录请求】URL: http://192.168.3.53:48080/app-api/system/third/login
+【签名字符串】生成签名（严格遵循文档规则）
+        :param timestamp: 毫秒级时间戳（有效期5分钟）
+        :return: Base64编码的签名字符串
+【请求数据】{
+  "username": "lvguangzhineng",
+  "password": "zhineng@123789!#",
+  "timestamp": 1767147038870,
+  "appId": "lvguang123",
+  "sign": "XFXpMDs1tS9J+c1ZbV8kJOimaZDg3NvT5Cu2ZU6IRrAMwxplvI1oNkA2oE3qzzRJGGImi69mWNIWa39SAHB2gB4huREgoFPXhiVzN3+ZesXTAQdkwtVwDREDSQCz9vumBsznCiu7XC2UD3SQ7x/F0DNUpzBEXfrQYi6fnKWq0QJ5tpXtiucLYRo87/0+eCeZZDM3DXVqX9vdKlKvWW88auwJJ4F9fy4Of3twLHEkfEIzbXzeKITqR4ccaKBlK18HVSiv7TQ0TbeYD/Z+xt6Yd7zqUp8Cb+F2zYbyb7/XVO6cbGTMjyym96w/e+SHw5n693EHvgYKQnRsKnIMU4TiAA=="
+}
+login result: {'code': 200, 'msg': '', 'data': {'userId': '2004030948738125826', 'accessToken': 'd25720cb916d4742a7747efc6024cbc8'}}
+【登录成功】
+User ID: 2004030948738125826
+Access Token: d25720cb91...fc6024cbc8
+等待任务完成...
+【任务查询结果】:{'code': 200, 'msg': '', 'data': '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'}
+任务查询成功！
+任务结果:
+{
+  "15961798692": [
+    {
+      "byOdsDeviceInfo": [
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "2805527085658478732",
+          "deviceTime": "2024-12-31",
+          "deviceLastTime": "2025-12-29",
+          "cellFactory": "HUAWEI",
+          "model": "MATE 70 PRO",
+          "languageName": "中文",
+          "sysver": "12.0",
+          "oaid": "9b31d4b6-058c-4728-9c48-57a8b0c76330",
+          "idfa": "",
+          "imeiList": "[]",
+          "macList": "[]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2024-12-31 00:00:00\",\"lastTime\":\"2025-01-06 00:00:00\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        },
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "58222f18591394471ac437e66e67a4cf1fb92cfd0",
+          "deviceTime": "2025-05-09",
+          "deviceLastTime": "2025-07-07",
+          "cellFactory": "HUAWEI",
+          "model": "MATE 70 PRO",
+          "languageName": "中文",
+          "sysver": "12.0",
+          "oaid": "",
+          "idfa": "",
+          "imeiList": "[]",
+          "macList": "[]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2025-05-09 00:00:03\",\"lastTime\":\"2025-07-07 00:00:03\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        },
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "feb1d04b7db020fee84b435eae177d4cbb3803c51",
+          "deviceTime": "2025-01-08",
+          "deviceLastTime": "2025-01-08",
+          "cellFactory": "other",
+          "model": "other",
+          "languageName": "",
+          "sysver": "12.0",
+          "oaid": "ffffd7fb-f6b7-cfd0-f667-cdb7ffdb1bff",
+          "idfa": "",
+          "imeiList": "[]",
+          "macList": "[]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2025-01-08 00:00:03\",\"lastTime\":\"2025-01-08 00:00:03\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        },
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "15ebd01c0654318ac8cb8ba51341b93f52fdd8161",
+          "deviceTime": "2025-10-27",
+          "deviceLastTime": "2025-10-27",
+          "cellFactory": "HUAWEI",
+          "model": "MATE 20 X",
+          "languageName": "",
+          "sysver": "10.0",
+          "oaid": "ffffd7fb-f6b7-cfd0-f667-cdb7ffdb1bff",
+          "idfa": "",
+          "imeiList": "[]",
+          "macList": "[]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2025-10-27 00:00:03\",\"lastTime\":\"2025-10-27 00:00:03\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        },
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "289526515677717025",
+          "deviceTime": "2018-11-04",
+          "deviceLastTime": "2025-10-27",
+          "cellFactory": "HUAWEI",
+          "model": "MATE 20 X",
+          "languageName": "中文",
+          "sysver": "10.0",
+          "oaid": "ffffd7fb-f6b7-cfd0-f667-cdb7ffdb1bff",
+          "idfa": "",
+          "imeiList": "[\"866202044177975\", \"86620204417797\"]",
+          "macList": "[\"f4:bf:80:78:4e:7c\"]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2018-11-04 18:59:43\",\"lastTime\":\"2023-07-02 00:10:00\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        },
+        {
+          "id": "15961798692",
+          "idType": "010105",
+          "deviceId": "e8f2a507c3cbc212092de4dc4f1644dde8e128290",
+          "deviceTime": "2025-01-24",
+          "deviceLastTime": "2025-08-20",
+          "cellFactory": "HUAWEI",
+          "model": "MATE 70 PRO",
+          "languageName": "",
+          "sysver": "unknown",
+          "oaid": "",
+          "idfa": "",
+          "imeiList": "[]",
+          "macList": "[]",
+          "phoneList": "[{\"carrier\":\"中国移动\",\"code\":\"15961798692\",\"firstTime\":\"2025-01-24 00:00:03\",\"lastTime\":\"2025-04-16 00:00:03\",\"location\":\"江苏-无锡\",\"status\":\"实号\"}]",
+          "imsiList": "[]"
+        }
+      ],
+      "debtorJson": {
+        "fga": 11.667,
+        "gea": 4.1,
+        "mr": 64.04,
+        "rsh": 71.2,
+        "afp": 33.14,
+        "lef": 32.393,
+        "deviceId": "2805527085658478732",
+        "swp": "{\"health_focus_score\":66.667,\"work_scene_tag\":\"unknown\"}",
+        "prp": 34.137,
+        "br": 54.073,
+        "dnti": 84.293,
+        "labr": 100,
+        "originalExid": "15961798692",
+        "geaRaw": 71.605,
+        "id": "-1556960938736191424",
+        "ws": 70.063,
+        "cwp": "day_noon",
+        "ec": 50.405,
+        "rp": 71.605
+      }
+    }
+  ]
+}
+登出成功！
