@@ -33,6 +33,7 @@ class FinancialPlatformAPI:
         self.password = password
         self.access_token = None
         self.user_id = None
+        self.session_id = None  # 用于日志关联
         # 为异步请求创建 session
         self._session = None
     
@@ -124,14 +125,14 @@ class FinancialPlatformAPI:
                 logger.debug(f"【实际响应】{json.dumps(result, indent=2)}")
                 return False
             logger.debug(f"login result: {result}")
-            # 处理业务错误（文档要求code=0表示成功）
+            # 处理业务错误
             if result.get('code') != 200:
                 logger.debug(f"【业务错误】{result.get('msg', '未知错误')} (code={result.get('code')})")
                 return False
             
             # 处理成功响应
             self.access_token = result['data'].get('accessToken')
-            self.user_id = str(result['data'].get('userId', ''))
+            self.user_id = str(int(result['data'].get('userId', 0)))
             
             # 严格验证必要字段
             if not self.access_token or not self.user_id:
@@ -140,7 +141,7 @@ class FinancialPlatformAPI:
             
             logger.debug("【登录成功】")
             logger.debug(f"User ID: {self.user_id}")
-            logger.debug(f"Access Token: {self.access_token[:10]}...{self.access_token[-10:]}")  # 部分显示
+            logger.info(f"[Session: {self.session_id}] Access Token: {self.access_token}")
             return True
             
         except Exception as e:
@@ -182,7 +183,7 @@ class FinancialPlatformAPI:
     
     async def batch_create_credit_task(self, task_params: list) -> Dict[str, Any]:
         """
-        1.5 批量下信用指标任务 - 异步版本
+        1.7 批量下信用指标任务 - 异步版本
         直接转发请求，不解析结果
         :param task_params: 任务参数列表
         :return: 原始响应字典
@@ -193,7 +194,7 @@ class FinancialPlatformAPI:
                 "msg": "未登录，请先登录"
             }
             
-        url = f"{self.base_url}/app-api/system/third/checkCreditTaskBatch"
+        url = f"{self.base_url}/app-api/system/third/queryCredit"
         
         headers = {
             "Content-Type": "application/json",
@@ -228,18 +229,22 @@ class FinancialPlatformAPI:
                 logger.debug(f"【原始响应】状态码: {response.status}")
                 logger.debug(f"【原始响应】正文: {response_text[:500]}...")  # 只记录前500字符
                 
-                # 尝试解析为JSON，如果失败则返回原始文本
+                # 尝试解析为JSON
                 try:
                     result = json.loads(response_text)
+                    # 1.7 接口返回的 data 是加密文本，需要解密
+                    encrypted_data = result.get('data')
+                    if encrypted_data:
+                        result['data'] = self.decrypt_data(encrypted_data)
                 except json.JSONDecodeError:
                     result = {
                         "raw_response": response_text,
                         "status": response.status
                     }
-                
+
                 # 添加HTTP状态码
                 result["http_status"] = response.status
-                
+
                 return result
                 
         except asyncio.TimeoutError:
@@ -261,7 +266,7 @@ class FinancialPlatformAPI:
     
     async def query_credit_task_result(self, task_id: str, max_retries: int = 1, retry_interval: int = 5) -> Dict[str, Any]:
         """
-        1.6 查询信用指标任务结果 - 异步版本
+        1.7 查询信用指标任务结果 - 异步版本
         直接转发请求，不解析结果
         :param task_id: 任务ID
         :param max_retries: 最大重试次数
@@ -273,28 +278,28 @@ class FinancialPlatformAPI:
                 "code": 401,
                 "msg": "未登录，请先登录"
             }
-            
-        url = f"{self.base_url}/app-api/system/third/queryCreditTaskResult"
-        
+
+        url = f"{self.base_url}/app-api/system/third/queryCredit"
+
         headers = {
+            "Content-Type": "application/json",
             "Authorization": f"Bearer {self.access_token}"
         }
-        
-        params = {
-            "taskId": task_id
-        }
-        
+
+        # 1.7 接口使用 POST 请求，taskId 在请求体中
+        request_body = {"taskId": task_id}
+
         logger.debug(f"【查询信用指标任务结果】URL: {url}")
-        logger.debug(f"【请求参数】{json.dumps(params, indent=2)}")
-        
+        logger.debug(f"【请求体】{json.dumps(request_body, indent=2)}")
+
         for retry in range(max_retries):
             try:
-                # 使用 aiohttp 发送异步请求
+                # 使用 aiohttp 发送异步 POST 请求
                 session = await self.get_session()
-                
-                async with session.get(
-                    url, 
-                    params=params, 
+
+                async with session.post(
+                    url,
+                    json=request_body,
                     headers=headers
                 ) as response:
                     # 记录原始响应
@@ -369,3 +374,109 @@ class FinancialPlatformAPI:
             
         except Exception as e:
             raise Exception(f"数据解密失败: {str(e)}")
+
+    async def batch_create_device_task(self, task_params: list) -> Dict[str, Any]:
+        """
+        1.3 批量下设备信息任务
+        :param task_params: 任务参数列表 [{"idType": "010105", "exid": "13800138000"}]
+        :return: 原始响应字典
+        """
+        if not self.access_token:
+            return {
+                "code": 401,
+                "msg": "未登录，请先登录"
+            }
+
+        url = f"{self.base_url}/app-api/system/third/checkCreditTaskBatch"
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.access_token}"
+        }
+
+        # 按文档要求构造请求体
+        request_body = [{
+            "idType": item["idType"],
+            "exid": item["exid"]
+        } for item in task_params]
+
+        logger.debug(f"【设备信息任务创建】URL: {url}")
+        logger.debug(f"【请求体】{json.dumps(request_body, indent=2, ensure_ascii=False)}")
+
+        try:
+            session = await self.get_session()
+            async with session.post(url, json=request_body, headers=headers) as response:
+                response_text = await response.text()
+                logger.debug(f"【原始响应】状态码: {response.status}, 正文: {response_text[:500]}...")
+
+                try:
+                    result = json.loads(response_text)
+                except json.JSONDecodeError:
+                    result = {"raw_response": response_text, "status": response.status}
+
+                result["http_status"] = response.status
+                return result
+
+        except asyncio.TimeoutError:
+            return {"code": 408, "msg": "请求超时", "http_status": 408}
+        except Exception as e:
+            logger.debug(f"【请求异常】{str(e)}")
+            return {"code": 500, "msg": f"请求异常: {str(e)}", "http_status": 500}
+
+    async def query_device_task_result(self, task_id: str, max_retries: int = 1, retry_interval: int = 5) -> Dict[str, Any]:
+        """
+        1.4 查询APP指标任务结果
+        :param task_id: 任务ID
+        :param max_retries: 最大重试次数
+        :param retry_interval: 重试间隔(秒)
+        :return: 原始响应字典
+        """
+        if not self.access_token:
+            return {"code": 401, "msg": "未登录，请先登录"}
+
+        url = f"{self.base_url}/app-api/system/third/queryAppTaskResult"
+
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        params = {"taskId": task_id}
+
+        logger.debug(f"【查询APP任务结果】URL: {url}, 参数: {params}")
+
+        for retry in range(max_retries):
+            try:
+                session = await self.get_session()
+                async with session.get(url, params=params, headers=headers) as response:
+                    logger.debug(f"【原始响应】状态码: {response.status}")
+
+                    if response.status == 204:
+                        logger.debug(f"【任务进行中...】({retry + 1}/{max_retries})")
+                        if retry < max_retries - 1:
+                            await asyncio.sleep(retry_interval)
+                        continue
+
+                    response_text = await response.text()
+                    logger.debug(f"【原始响应】正文: {response_text[:500]}...")
+
+                    try:
+                        result = json.loads(response_text)
+                        # 尝试解密 data 字段
+                        encrypted_data = result.get('data')
+                        if encrypted_data:
+                            result['data'] = self.decrypt_data(encrypted_data)
+                    except json.JSONDecodeError:
+                        result = {"raw_response": response_text, "status": response.status}
+
+                    result["http_status"] = response.status
+                    return result
+
+            except asyncio.TimeoutError:
+                logger.debug(f"【请求超时】重试 {retry + 1}/{max_retries}")
+                if retry < max_retries - 1:
+                    await asyncio.sleep(retry_interval)
+                continue
+            except Exception as e:
+                logger.debug(f"【请求异常】{str(e)}")
+                if retry < max_retries - 1:
+                    await asyncio.sleep(retry_interval)
+                continue
+
+        return {"code": 408, "msg": f"查询超时，重试{max_retries}次后仍未成功", "http_status": 408}
