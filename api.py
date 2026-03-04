@@ -33,6 +33,12 @@ class DeviceTaskParam(BaseModel):
     idType: str  # 010105=PHONE, 010207=IMEI, 010208=IMSI, 010209=MAC, 010213=IDFA, 010214=OAID
     exid: str    # 查询内容
 
+# 查询单个APP参数模型
+class QueryAppSingleParam(BaseModel):
+    """查询单个APP参数模型，对应文档1.8接口"""
+    idType: str ="010105" # 010105=PHONE, 010207=IMEI, 010208=IMSI, 010209=MAC, 010213=IDFA, 010214=OAID
+    exid: str    # 查询内容
+
 # 会话ID依赖
 def get_session_id(session_id: str):
     return session_id
@@ -132,6 +138,41 @@ async def query_device_task(
     使用异步HTTP请求，直接转发原始响应
     """
     result = await api.query_device_task_result(task_id, max_retries, retry_interval)
+    return result
+
+@app.post("/query_app_single/{session_id}", response_model=dict)
+async def query_app_single(
+    req: QueryAppSingleParam,
+    api: FinancialPlatformAPI = Depends(get_api_instance)
+):
+    """
+    查询单个应用（对应文档1.8 queryAppSingle）
+    idType: 010105=PHONE, 010207=IMEI, 010208=IMSI, 010209=MAC, 010213=IDFA, 010214=OAID
+    返回解密后的设备信息列表
+    """
+    url = f"{api.base_url}/app-api/system/third/queryAppSingle"
+    data = {
+        "idType": req.idType,
+        "exid": req.exid
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api.access_token}"
+    }
+
+    session = await api.get_session()
+    resp = await session.post(url, json=data, headers=headers)
+    result = await resp.json()
+
+    # 解密数据
+    if result.get("code") == 200 and result.get("data"):
+        try:
+            decrypted = api.decrypt_data(result["data"])
+            result["decrypted_data"] = json.loads(decrypted)
+        except Exception as e:
+            result["decrypt_error"] = str(e)
+
     return result
 
 @app.on_event("startup")

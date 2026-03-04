@@ -1,4 +1,5 @@
 import aiohttp
+from aiohttp import ClientTimeout
 import asyncio
 from typing import Dict, Any
 import requests
@@ -217,10 +218,14 @@ class FinancialPlatformAPI:
             # 使用 aiohttp 发送异步请求
             session = await self.get_session()
             
+            # 配置超时: 总超时 60 秒, 连接超时 15 秒, 读取超时 45 秒
+            timeout = ClientTimeout(total=300, connect=120, sock_read=120)
+
             async with session.post(
-                url, 
-                json=request_body, 
-                headers=headers
+                url,
+                json=request_body,
+                headers=headers,
+                timeout=timeout
             ) as response:
                 # 读取原始响应文本
                 response_text = await response.text()
@@ -235,18 +240,21 @@ class FinancialPlatformAPI:
                     # 1.7 接口返回的 data 是加密文本，需要解密
                     encrypted_data = result.get('data')
                     if encrypted_data:
-                        result['data'] = self.decrypt_data(encrypted_data)
+                        decrypted_str = self.decrypt_data(encrypted_data)
+                        result['data'] = json.loads(decrypted_str)
                 except json.JSONDecodeError:
                     result = {
                         "raw_response": response_text,
                         "status": response.status
                     }
+                except json.JSONDecodeError as e:
+                    logger.debug(f"【JSON解析失败】{str(e)}")
 
                 # 添加HTTP状态码
                 result["http_status"] = response.status
 
                 return result
-                
+
         except asyncio.TimeoutError:
             logger.debug("【请求超时】")
             return {
