@@ -111,6 +111,17 @@ async def create_credit_task(
 
     # 调用异步方法
     result = await api.batch_create_credit_task(task_params)
+
+    # 透传上游状态码
+    http_status = result.get("http_status", 200)
+    if http_status != 200:
+        from fastapi import Response
+        return Response(
+            content=json.dumps(result, ensure_ascii=False),
+            status_code=http_status,
+            media_type="application/json"
+        )
+
     return result
 
 @app.post("/create_device_task/{session_id}", response_model=dict)

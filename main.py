@@ -95,7 +95,7 @@ class FinancialPlatformAPI:
         }
         
         logger.debug(f"【登录请求】URL: {url}")
-        logger.debug(f"【签名字符串】{self.generate_signature.__doc__.split('Sign String: ')[-1].strip()}")
+        # logger.debug(f"【签名字符串】{self.generate_signature.__doc__.split('Sign String: ')[-1].strip()}")
         logger.debug(f"【请求数据】{json.dumps(data, indent=2)}")
         
         headers = {
@@ -217,9 +217,8 @@ class FinancialPlatformAPI:
         try:
             # 使用 aiohttp 发送异步请求
             session = await self.get_session()
-            
-            # 配置超时: 总超时 60 秒, 连接超时 15 秒, 读取超时 45 秒
-            timeout = ClientTimeout(total=300, connect=120, sock_read=120)
+
+            timeout = ClientTimeout(total=60, connect=30, sock_read=30)
 
             async with session.post(
                 url,
